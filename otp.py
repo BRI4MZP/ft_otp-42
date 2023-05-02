@@ -1,7 +1,6 @@
 import time, hashlib, argparse
 
 def getArgs():
-    
 	getter = argparse.ArgumentParser(description="Tool for generate a one time password.")
 	getter.add_argument('-g', type=str,)
 	getter.add_argument('-k', type=str)
@@ -43,8 +42,6 @@ if __name__ == "__main__":
             try:
                   with open(arguments.k, 'r') as openin:
                         psswd = openin.read()
-                        left = psswd[:-32]
-                        right = psswd[-32:]
             except FileNotFoundError:
                   quit("Error: file {} not found".format(arguments.k))
             except:
