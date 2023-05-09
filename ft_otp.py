@@ -1,16 +1,23 @@
-import time, hashlib, argparse, os, base64
+import time, hashlib, argparse, os, base64, hmac, pyotp, struct
 
 def getArgs():
 	getter = argparse.ArgumentParser(description="Tool for generate a one time password.")
 	getter.add_argument('-g', type=str,)
 	getter.add_argument('-k', type=str)
 	return(getter.parse_args())
-def optionk(b32):
+def optionk(encode_key):
+      key = base64.b64decode(encode_key.encode('utf-8'))
+      encr = key[:16]
+      passwd = key[16:]
+      real = hashlib.sha256(encr + passwd).hexdigest()
+      value = bytes.fromhex(real)
       now = int(time.time() // 30)
-      converter = hashlib.sha256(str(now).encode('utf-8'))
-      hexconvert = converter.hexdigest()[:6]
-      result = int(hexconvert, base=16) % 1000000
-      print(result)
+      endian = struct.pack(">Q", now)
+      hashk = hmac.digest(value, endian, hashlib.sha1)
+      offset = hashk[19] & 15
+      otp_key = struct.unpack('>I', hashk[offset:offset + 4])[0]
+      otp_key = (otp_key & 0x7FFFFFFF) % 1000000
+      return "{:06d}".format(otp_key)
 
 # def decode(passwd):
 #       pswdsha256 = hashlib.sha256(passwd[32:].encode('utf-8')).hexdigest()
@@ -52,5 +59,6 @@ if __name__ == "__main__":
                   quit("Error: file {} not found".format(arguments.k))
             except:
                   quit("Error: could not read {}".format(arguments.k))
-            quit(optionk(b32))
+            quit(print("La clave es: ", optionk(psswd)))
       quit("Error: ft_otp need atleast 1 argument")
+# print(f"Clave (Correcta): {pyotp.TOTP(base64.b32encode(value)).now()} = pyotp", )
